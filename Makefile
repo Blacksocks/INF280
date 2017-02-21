@@ -1,8 +1,8 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-SRC = 4954.cpp
+SRC = 4493.cpp
 EXE = $(subst .cpp,,$(SRC))
-INPUT = sample_file
+INPUT = file_4493
 
 .PHONY : all run compil clean
 

@@ -1,6 +1,5 @@
 #include <iostream>
 
-//#define DEBUG         1
 #define WIDTH           100
 #define HEIGHT          75
 
@@ -66,18 +65,6 @@ int main(void)
             scanf("%f", x+i);
         FOR(i, ny)
             scanf("%f", y+i);
-
-#ifdef DEBUG
-        // print inputs
-        cout << "nx: " << nx << ", ny: " << ny << ", w: " << w << endl;
-        cout << "x: ";
-        FOR(i, nx)
-            cout << " " << x[i];
-        cout << endl << "y: ";
-        FOR(i, ny)
-            cout << " " << y[i];
-        cout << endl;
-#endif
 
         if(wholeMowed(x, nx, HEIGHT) && wholeMowed(y, ny, WIDTH))
             cout << "YES" << endl;

@@ -15,20 +15,35 @@ int main(void)
     char o; // order
     int p; // person to move in case of 'E' order
     int count = 1;
-    scanf("%d", &n);
+    int input = scanf("%d", &n);
+	if(!input)
+	{
+		cout << "[ERROR] Reading input error." << endl;
+		return 1;
+	}
     while(n != 0)
     {
-        cout << "Case " << count << ":" << endl;
+		cout << "Case " << count++ << ":" << endl;
         // get inputs
-        scanf("%d", &c);
-        list<int> l;
-        FOR(i, c)
+        input = scanf("%d", &c);
+		if(!input)
+		{
+			cout << "[ERROR] Reading input error." << endl;
+			return 1;
+		}
+		list<int> l;
+        FOR(i, n)
             l.push_back(i+1);
 
         // for each order
         FOR(i, c)
         {
-            scanf(" %c", &o);
+			input = scanf(" %c", &o);
+			if(!input)
+			{
+				cout << "[ERROR] Reading input error." << endl;
+				return 1;
+			}
             if(o == 'N')
             {
                 int tmp = l.front();
@@ -38,26 +53,31 @@ int main(void)
             }
             else
             {
-                scanf("%d", &p);
+                input = scanf("%d", &p);
+				if(!input)
+				{
+					cout << "[ERROR] Reading input error." << endl;
+					return 1;
+				}
                 int tmp = 0;
-                /*for (int n : l) {
-                    std::cout << n << '\n';
-                }*/
-                for (list<int>::const_iterator it = l.begin(); it != l.end(); ++it)
+				for (list<int>::const_iterator it = l.begin(); it != l.end(); ++it)
                 {
                     if(*it == p)
                     {
                         tmp = *it;
-                        l.erase(it);
+						l.erase(it);
                         break;
                     }
                 }
-                l.push_back(tmp);
-                cout << "TEST" << tmp << endl;
+                l.push_front(tmp);
             }
         }
-
-        scanf("%d", &n);
+        input = scanf("%d", &n);
+		if(!input)
+		{
+			cout << "[ERROR] Reading input error." << endl;
+			return 1;
+		}
     }
     return 0;
 }

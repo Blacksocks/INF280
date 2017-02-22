@@ -5,79 +5,50 @@
 
 using namespace std;
 
+inline void check_input(int input)
+{
+	if(!input)
+	{
+		cout << "[ERROR] Reading input error." << endl;
+		exit(1);
+	}
+}
+
 /* Solve That is Your Queue problem
 ** https://icpcarchive.ecs.baylor.edu/external/44/4493.pdf
 */
 int main(void)
 {
-    int n; // number of person
+    int n = 1; // number of person
     int c; // number of commands
     char o; // order
-    int p; // person to move in case of 'E' order
     int count = 1;
-    int input = scanf("%d", &n);
-	if(!input)
-	{
-		cout << "[ERROR] Reading input error." << endl;
-		return 1;
-	}
-    while(n != 0)
+    while(1)
     {
-		cout << "Case " << count++ << ":" << endl;
-        // get inputs
-        input = scanf("%d", &c);
-		if(!input)
-		{
-			cout << "[ERROR] Reading input error." << endl;
-			return 1;
-		}
+		check_input(scanf("%d %d", &n, &c));
+		if(n == 0) return 0;
+		printf("Case %d:\n", count++);
 		list<int> l;
-        FOR(i, n)
-            l.push_back(i+1);
-
+		if(c < n) n = c;
+        FOR(i, n) l.push_back(i+1);
         // for each order
         FOR(i, c)
         {
-			input = scanf(" %c", &o);
-			if(!input)
-			{
-				cout << "[ERROR] Reading input error." << endl;
-				return 1;
-			}
+			check_input(scanf("\n%c", &o));
             if(o == 'N')
             {
-                int tmp = l.front();
-                cout << tmp << endl;
-                l.pop_front();
-                l.push_back(tmp);
+                printf("%d\n", l.front());
+                l.push_back(l.front());
+				l.pop_front();
             }
-            else
+            else // 'E' order
             {
-                input = scanf("%d", &p);
-				if(!input)
-				{
-					cout << "[ERROR] Reading input error." << endl;
-					return 1;
-				}
-                int tmp = 0;
-				for (list<int>::const_iterator it = l.begin(); it != l.end(); ++it)
-                {
-                    if(*it == p)
-                    {
-                        tmp = *it;
-						l.erase(it);
-                        break;
-                    }
-                }
-                l.push_front(tmp);
+				int p; // person to move
+                check_input(scanf("%d", &p));
+				l.remove(p);
+				l.push_front(p);
             }
         }
-        input = scanf("%d", &n);
-		if(!input)
-		{
-			cout << "[ERROR] Reading input error." << endl;
-			return 1;
-		}
     }
     return 0;
 }

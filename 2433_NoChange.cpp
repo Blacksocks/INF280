@@ -7,6 +7,7 @@
 //#define DEBUG			1
 
 int val[K];
+int nb[K];
 int amount;
 int founded;
 
@@ -19,22 +20,16 @@ inline void check_input(const int input)
 	}
 }
 
-void addCoin(int * nb, int idx)
+void addCoin(int idx)
 {
 	if(founded)
 		return;
 	int tmpAmount = 0;
-	int currNb[K]; // copie of nb
 	FOR(i, K)
-	{
-		currNb[i] = nb[i];
 		tmpAmount += nb[i] * val[i];
-	}
-	tmpAmount += val[idx];
-	currNb[idx]++;
 #ifdef DEBUG
 	FOR(i, K)
-		printf("%d ", currNb[i]);
+		printf("%d ", nb[i]);
 	printf("sum: %d\n", tmpAmount);
 #endif
 	if(tmpAmount == amount)
@@ -43,9 +38,16 @@ void addCoin(int * nb, int idx)
 		return;
 	FOR3(idx, i, K)
 	{
-		if(i != 0 && nb[i-1] <= nb[i])
-			break;
-		addCoin(currNb, i);
+		if(i != 0)
+		{
+			if(nb[i-1] < nb[i])
+				break;
+			if(nb[i-1] == nb[i])
+				continue;
+		}
+		nb[i]++;
+		addCoin(i);
+		nb[i]--;
 	}
 }
 
@@ -56,7 +58,6 @@ int main(void)
 {
 	int nbInputs;
 	int scan;
-	int nb[K];
 	FOR(i, K)
 		nb[i] = 0;
 	check_input(scanf("%d\n\n%d", &nbInputs, &scan));
@@ -70,7 +71,7 @@ int main(void)
 				break;
 			val[k] = scan;
 		}
-		addCoin(nb, 0);
+		addCoin(0);
 		if(founded) printf("YES\n");
 		else printf("NO\n");
 		if(i < nbInputs - 1)

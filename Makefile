@@ -1,8 +1,9 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-SRC = 2433.cpp
+NUMBER = 2433
+SRC = $(NUMBER)_NoChange.cpp
 EXE = $(subst .cpp,,$(SRC))
-INPUT = file_2433
+INPUT = file_$(NUMBER)
 
 .PHONY : all run compil clean
 

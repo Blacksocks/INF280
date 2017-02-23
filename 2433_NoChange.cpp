@@ -10,6 +10,7 @@ int val[K];
 int nb[K];
 int amount;
 int founded;
+int tmpAmount;
 
 inline void check_input(const int input)
 {
@@ -24,7 +25,7 @@ void addCoin(int idx)
 {
 	if(founded)
 		return;
-	int tmpAmount = 0;
+	tmpAmount = 0;
 	FOR(i, K)
 		tmpAmount += nb[i] * val[i];
 #ifdef DEBUG

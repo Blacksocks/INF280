@@ -5,7 +5,8 @@
 #define K				5
 
 int val[K];
-int nb[K];
+int amount;
+int founded;
 
 inline void check_input(const int input)
 {
@@ -16,50 +17,56 @@ inline void check_input(const int input)
 	}
 }
 
+void addCoin(int * nb)
+{
+	if(founded)
+		return;
+	int tmpAmount = 0;
+	int currNb[K]; // copie of nb
+	FOR(i, K)
+	{
+		currNb[i] = nb[i];
+		tmpAmount += nb[i] * val[i];
+	}
+	if(tmpAmount == amount)
+		founded = 1;
+	if(tmpAmount >= amount)
+		return;
+	FOR(i, K)
+	{
+		if(i != 0 && nb[i-1] <= nb[i])
+			break;
+		currNb[i]++;
+		addCoin(currNb);
+	}
+}
+
 /* Solve No Change problem
 ** https://icpcarchive.ecs.baylor.edu/external/24/2433.pdf
 */
 int main(void)
 {
 	int nbInputs;
-	int amount;
-
 	int scan;
-	int tmpVal;
+	int nb[K];
+	FOR(i, K)
+		nb[i] = 0;
 	check_input(scanf("%d\n\n%d", &nbInputs, &scan));
 	FOR(i, nbInputs)
 	{
+		founded = 0;
 		amount = scan;
 		FOR(k, K)
 		{
 			if(!scanf(" %d", &scan))
 				break;
 			val[k] = scan;
-			// init nb array to 1,1,...,1,X,...,X
-			tmpVal = 0;
-			FOR(j, k)
-			{
-				nb[j] = 1;
-				tmpVal += val[j];
-			}
-			FOR(j, k)
-			{
-				if(tmpVal > amount)
-					break;
-				if(tmpVal == amount)
-				{
-					printf("YES\n\n");
-					goto success;
-				}
-				FOR(i, K)
-					printf("%d ", nb[i]);
-				printf("\n");
-				nb[j]++;
-				tmpVal += val[j];
-			}
 		}
-		printf("NO\n\n");
-success:;
+		addCoin(nb);
+		if(founded) printf("YES");
+		else printf("NO");
+		if(i < nbInputs - 1)
+			printf("\n\n");
 	}
     return 0;
 }

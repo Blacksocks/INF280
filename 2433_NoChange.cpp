@@ -27,17 +27,16 @@ void addCoin(int * nb, int idx)
 	int currNb[K]; // copie of nb
 	FOR(i, K)
 	{
-#ifdef DEBUG
-		printf("%d ", nb[i]);
-#endif
 		currNb[i] = nb[i];
 		tmpAmount += nb[i] * val[i];
 	}
-#ifdef DEBUG
-	printf("\n");
-#endif
-	tmpAmount += nb[idx];
+	tmpAmount += val[idx];
 	currNb[idx]++;
+#ifdef DEBUG
+	FOR(i, K)
+		printf("%d ", currNb[i]);
+	printf("sum: %d\n", tmpAmount);
+#endif
 	if(tmpAmount == amount)
 		founded = 1;
 	if(tmpAmount >= amount)

@@ -3,14 +3,15 @@
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
 
-#define K				5
+#define MAX_NB_PIECES	5
 //#define DEBUG			1
 
-int val[K];
-int nb[K];
+int val[MAX_NB_PIECES];
+int nb[MAX_NB_PIECES];
 int amount;
 int founded;
 int tmpAmount;
+int nbPieces;
 
 inline void check_input(const int input)
 {
@@ -26,10 +27,10 @@ void addCoin(int idx)
 	if(founded)
 		return;
 	tmpAmount = 0;
-	FOR(i, K)
+	FOR(i, nbPieces)
 		tmpAmount += nb[i] * val[i];
 #ifdef DEBUG
-	FOR(i, K)
+	FOR(i, nbPieces)
 		printf("%d ", nb[i]);
 	printf("sum: %d\n", tmpAmount);
 #endif
@@ -37,7 +38,7 @@ void addCoin(int idx)
 		founded = 1;
 	if(tmpAmount >= amount)
 		return;
-	FOR3(idx, i, K)
+	FOR3(idx, i, nbPieces)
 	{
 		if(i != 0)
 		{
@@ -58,20 +59,22 @@ void addCoin(int idx)
 int main(void)
 {
 	int nbInputs;
-	int scan;
-	FOR(i, K)
-		nb[i] = 0;
-	check_input(scanf("%d\n\n%d", &nbInputs, &scan));
+	nbPieces = MAX_NB_PIECES;
+	check_input(scanf("%d", &nbInputs));
 	FOR(i, nbInputs)
 	{
+		FOR(i, nbPieces)
+			nb[i] = 0;
+		check_input(scanf("%d%d", &amount, &nbPieces));
 		founded = 0;
-		amount = scan;
-		FOR(k, K)
-		{
-			if(!scanf(" %d", &scan))
-				break;
-			val[k] = scan;
-		}
+		FOR(k, nbPieces)
+			check_input(scanf("%d", &val[k]));
+#ifdef DEBUG
+		printf("Input: Amount:%d, coins: [", amount);
+		FOR(i, nbPieces)
+			printf("%d,", val[i]);
+		printf("]\n");
+#endif
 		addCoin(0);
 		if(founded) printf("YES\n");
 		else printf("NO\n");

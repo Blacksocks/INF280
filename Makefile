@@ -1,7 +1,7 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-NUMBER = 2433
-SRC = $(NUMBER)_NoChange.cpp
+NUMBER = 3983
+SRC = $(NUMBER)_Robotruck.cpp
 EXE = $(subst .cpp,,$(SRC))
 INPUT = file_$(NUMBER)
 

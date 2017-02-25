@@ -6,39 +6,20 @@
 #define DEBUG			1
 #define HOME			(-1)
 
-typedef struct lnk_s {
-	int i1; // index 1
-	int i2; // index 2
+typedef struct path_s {
+	int * p; // points
+	int n; // number of points
 	int d; // distance
-	int l; // is linked ?
-} lnk_t;
+} path_t;
 
-void sort(lnk_t * l, int n)
-{
-	int minIdx;
-	int minVal;
-	int tmpI1, tmpI2, tmpD;
-	FOR(i, n)
-	{
-		minIdx = i;
-		minVal = l[i].d;
-		FOR3(i+1, j, n)
-			if(l[j].d < minVal)
-			{
-				minIdx = j;
-				minVal = l[j].d;
-				tmpI1 = l[i].i1;
-				tmpI2 = l[i].i2;
-				tmpD = l[i].d;
-				l[i].i1 = l[minIdx].i1;
-				l[i].i2 = l[minIdx].i2;
-				l[i].d = l[minIdx].d;
-				l[minIdx].i1 = tmpI1;
-				l[minIdx].i2 = tmpI2;
-				l[minIdx].d = tmpD;
-			}
-	}
-}
+int minPathsDist;
+path_t * paths;
+int nbPath;
+int nbPoints;
+int capacity;
+int * weight;
+int * pos;
+int * reached;
 
 inline void check_input(const int input)
 {
@@ -54,20 +35,113 @@ inline int dist(int * a, int * b)
 	return(abs(b[0] - a[0]) + abs(b[1] - a[1]));
 }
 
-inline void printLnk(lnk_t * l, int n)
-{
-	printf("LINKS:\n");
-	FOR(i, n)
-		printf("  (%d, %d, %d, %d)\n", l[i].i1, l[i].i2, l[i].d, l[i].l);
-	printf("\n");
-}
-
 inline void printList(int * l, int n)
 {
-	printf("LIST:\n");
+	printf("[");
 	FOR(i, n)
-		printf("%d ", l[n]);
-	printf("\n");
+		printf("%d ", l[i]);
+	printf("\b]\n");
+}
+
+int getMinPathLen(int pointIdx, int curDist, int curWeight, int * len, int * reached)
+{
+	int idx = (pointIdx == 0);
+	int minDist = dist(pos+idx, pos+pointIdx);
+	// get nearest point from pointIdx
+	FOR(i, nbPoints)
+	{
+		if(i == pointIdx || reached[i])
+			continue;
+		if(dist(pos+i, pos+idx) < minDist || reached[idx])
+		{
+			minDist = dist(pos+i, pos+idx);
+			idx = i;
+		}
+	}
+	// minPathsDist is shorter, this paths are not optimized -> stop
+	if(minPathsDist != -1 && curDist + minDist > minPathsDist)
+		return 1;
+	// out of capacity -> got back home
+	if(curWeight + weight[idx] > capacity)
+		return 0;
+	// all points joined -> got back home
+	if(reached[idx])
+		return 2;
+	(*len)++;
+	reached[idx] = 1;
+	return getMinPathLen(idx, curDist+minDist, curWeight+weight[idx], len, reached);
+}
+
+int getMinPath(int pathIdx, int pointIdx, int curWeight, int pathPointIdx)
+{
+	int idx = (pointIdx == 0);
+	int minDist = dist(pos+idx, pos+pointIdx);
+	int curDist = paths[pathIdx].d;
+	// get nearest point from pointIdx
+	FOR3(2, i, nbPoints)
+	{
+		if(i == pointIdx || reached[i])
+			continue;
+		if(dist(pos+i, pos+idx) < minDist || reached[idx])
+		{
+			minDist = dist(pos+i, pos+idx);
+			//printf("  %d to %d - minDist: %d\n", i, idx, minDist);
+			idx = i;
+		}
+	}
+	// minPathsDist is shorter, this paths are not optimized -> stop
+	if(minPathsDist != -1 && curDist + minDist > minPathsDist)
+		return 1;
+	// out of capacity -> got back home
+	if(curWeight + weight[idx] > capacity)
+		return 0;
+	paths[pathIdx].p[pathPointIdx++] = idx;
+	// all points joined -> got back home
+	if(reached[idx])
+		return 2;
+	reached[idx] = 1;
+	paths[pathIdx].d += minDist;
+#ifdef DEBUG
+	printf("%d to %d, minDist: %d\n", pointIdx, idx, minDist);
+#endif
+	return getMinPath(pathIdx, idx, curWeight+weight[idx], pathPointIdx);
+}
+
+void getMinPaths()
+{
+	int pathLen;
+	int * tmpReached = new int[nbPoints];
+	int res;
+	FOR(i, nbPoints)
+		tmpReached[i] = reached[i];
+	do{
+		pathLen = 0;
+		if(getMinPathLen(0, 0, 0, &pathLen, tmpReached) == 1)
+		{
+			printf("[INFO] Unoptimized paths\n");
+			return;
+		}
+		paths[nbPath].p = new int[pathLen];
+		paths[nbPath].n = pathLen;
+		paths[nbPath].d = 0;
+		res = getMinPath(nbPath, 0, 0, 0);
+		int p0 = paths[nbPath].p[0];
+		int pN = paths[nbPath].p[pathLen-1];
+		paths[nbPath++].d += pos[p0] + pos[p0+1] + pos[pN] + pos[pN+1];
+	}
+	while(res != 2);
+	delete(tmpReached);
+}
+
+void printPath()
+{
+	FOR(i, nbPath)
+	{
+		printf("[HOME] ");
+		FOR(j, paths[i].n)
+			printf("%d ", paths[i].p[j]);
+		printf("[HOME]\n");
+	}
 }
 
 /* Solve Robotruck
@@ -76,65 +150,33 @@ inline void printList(int * l, int n)
 int main(void)
 {
 	int nbTests;
-	int capacity;
-	int nbPackages;
 	check_input(scanf("%d", &nbTests));
 	FOR(i, nbTests)
 	{
-		check_input(scanf("%d%d", &capacity, &nbPackages));
-		int * pos = new int[nbPackages * 2];
-		int * weigth = new int[nbPackages];
-		FOR(j, nbPackages)
-			check_input(scanf("%d%d%d", &pos[j*2], &pos[j*2+1], &weigth[j]));
-		// ([@A]..[@Z][AB]..[AZ]..[YZ])
-		int nbLnk = nbPackages * (nbPackages+1) / 2;
-		lnk_t * lnk = new lnk_t[nbLnk];
-		FOR(j, nbPackages)
-		{
-			lnk_t * link = lnk + j;
-			link->i1 = HOME;
-			link->i2 = j;
-			link->d = pos[2*j] + pos[2*j+1];
-			link->l = 0;
-		}
-
-		int idx = nbPackages;
-		FOR(j, nbPackages)
-			FOR3(j+1, k, nbPackages)
-			{
-				lnk_t * link = lnk + idx++;
-				link->i1 = j;
-				link->i2 = k;
-				link->d = dist(pos+j, pos+k);
-				link->l = 0;
-			}
+		check_input(scanf("%d%d", &capacity, &nbPoints));
+		pos = new int[nbPoints * 2];
+		weight = new int[nbPoints];
+		FOR(j, nbPoints)
+			check_input(scanf("%d%d%d", &pos[j*2], &pos[j*2+1], &weight[j]));
 #ifdef DEBUG
-		printLnk(lnk, nbLnk);
+		printf("capacity: %d\nnbPoints: %d\nlist: [", capacity, nbPoints);
+		FOR(j, nbPoints)
+			printf("(%d,%d,%d) ", pos[j*2], pos[j*2+1], weight[j]);
+		printf("\b]\n\n");
 #endif
-		// tri des dist
-		sort(lnk, nbLnk);
+		minPathsDist = -1;
+		paths = new path_t[nbPoints];
+		reached = new int[nbPoints];
+		nbPath = 0;
+		FOR(i, nbPoints)
+			reached[i] = 0;
+		getMinPaths();
+		minPathsDist = 0;
+		FOR(j, nbPath)
+			minPathsDist += paths[j].d;
+		printf("%d\n\n", minPathsDist);
 #ifdef DEBUG
-		printLnk(lnk, nbLnk);
-#endif
-		int * isLinked = new int[nbPackages];
-		FOR(j, nbPackages)
-			isLinked[j] = 0;
-
-		FOR(j, nbLnk)
-		{
-			// si A et B ne sont pas liés, si A(resp. B)=HOME, A(resp. B) est considéré non lié
-			int i1 = lnk[j].i1;
-			int i2 = lnk[j].i2;
-			if((isLinked[i1] < 2 || i1 == HOME) && (isLinked[i2] < 2 || i2 == HOME))
-			{
-				isLinked[i1]++;
-				isLinked[i2]++;
-				lnk[j].l = 1;
-			}
-		}
-#ifdef DEBUG
-		printLnk(lnk, nbLnk);
-		printList(isLinked, nbPackages);
+		printPath();
 #endif
 	}
     return 0;

@@ -3,23 +3,22 @@
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
 
-#define DEBUG			1
+//#define DEBUG			1
 #define HOME			(-1)
 
-typedef struct path_s {
-	int * p; // points
-	int n; // number of points
-	int d; // distance
-} path_t;
-
-int minPathsDist;
-path_t * paths;
+int * path;
+int * minPath;
+int minDist;
 int nbPath;
 int nbPoints;
 int capacity;
 int * weight;
 int * pos;
 int * reached;
+int nbReached;
+int currWeight;
+int currDist;
+int idxPath;
 
 inline void check_input(const int input)
 {
@@ -35,6 +34,11 @@ inline int dist(int * a, int * b)
 	return(abs(b[0] - a[0]) + abs(b[1] - a[1]));
 }
 
+inline int distHome(int * a)
+{
+	return(a[0] + a[1]);
+}
+
 inline void printList(int * l, int n)
 {
 	printf("[");
@@ -43,104 +47,81 @@ inline void printList(int * l, int n)
 	printf("\b]\n");
 }
 
-int getMinPathLen(int pointIdx, int curDist, int curWeight, int * len, int * reached)
+void printPath(int * p)
 {
-	int idx = (pointIdx == 0);
-	int minDist = dist(pos+idx, pos+pointIdx);
-	// get nearest point from pointIdx
+	int w = 0;
+	printf("path: [HOME] ");
 	FOR(i, nbPoints)
 	{
-		if(i == pointIdx || reached[i])
-			continue;
-		if(dist(pos+i, pos+idx) < minDist || reached[idx])
+		w += weight[i];
+		if(w > capacity)
 		{
-			minDist = dist(pos+i, pos+idx);
-			idx = i;
+			printf("[HOME] ");
+			w = weight[i];
 		}
+		printf("%d ", p[i]);
 	}
-	// minPathsDist is shorter, this paths are not optimized -> stop
-	if(minPathsDist != -1 && curDist + minDist > minPathsDist)
-		return 1;
-	// out of capacity -> got back home
-	if(curWeight + weight[idx] > capacity)
-		return 0;
-	// all points joined -> got back home
-	if(reached[idx])
-		return 2;
-	(*len)++;
-	reached[idx] = 1;
-	return getMinPathLen(idx, curDist+minDist, curWeight+weight[idx], len, reached);
+	printf("[HOME]\n");
 }
 
-int getMinPath(int pathIdx, int pointIdx, int curWeight, int pathPointIdx)
+void nextPoint()
 {
-	int idx = (pointIdx == 0);
-	int minDist = dist(pos+idx, pos+pointIdx);
-	int curDist = paths[pathIdx].d;
-	// get nearest point from pointIdx
-	FOR3(2, i, nbPoints)
+	if(nbReached == nbPoints)
 	{
-		if(i == pointIdx || reached[i])
-			continue;
-		if(dist(pos+i, pos+idx) < minDist || reached[idx])
-		{
-			minDist = dist(pos+i, pos+idx);
-			//printf("  %d to %d - minDist: %d\n", i, idx, minDist);
-			idx = i;
-		}
-	}
-	// minPathsDist is shorter, this paths are not optimized -> stop
-	if(minPathsDist != -1 && curDist + minDist > minPathsDist)
-		return 1;
-	// out of capacity -> got back home
-	if(curWeight + weight[idx] > capacity)
-		return 0;
-	paths[pathIdx].p[pathPointIdx++] = idx;
-	// all points joined -> got back home
-	if(reached[idx])
-		return 2;
-	reached[idx] = 1;
-	paths[pathIdx].d += minDist;
-#ifdef DEBUG
-	printf("%d to %d, minDist: %d\n", pointIdx, idx, minDist);
-#endif
-	return getMinPath(pathIdx, idx, curWeight+weight[idx], pathPointIdx);
-}
-
-void getMinPaths()
-{
-	int pathLen;
-	int * tmpReached = new int[nbPoints];
-	int res;
-	FOR(i, nbPoints)
-		tmpReached[i] = reached[i];
-	do{
-		pathLen = 0;
-		if(getMinPathLen(0, 0, 0, &pathLen, tmpReached) == 1)
-		{
-			printf("[INFO] Unoptimized paths\n");
+		currDist += distHome(pos + 2*path[idxPath-1]);
+		if(minDist != -1 && currDist >= minDist)
 			return;
-		}
-		paths[nbPath].p = new int[pathLen];
-		paths[nbPath].n = pathLen;
-		paths[nbPath].d = 0;
-		res = getMinPath(nbPath, 0, 0, 0);
-		int p0 = paths[nbPath].p[0];
-		int pN = paths[nbPath].p[pathLen-1];
-		paths[nbPath++].d += pos[p0] + pos[p0+1] + pos[pN] + pos[pN+1];
+		minDist = currDist;
+		FOR(i, nbPoints)
+			minPath[i] = path[i];
+		return;
 	}
-	while(res != 2);
-	delete(tmpReached);
-}
-
-void printPath()
-{
-	FOR(i, nbPath)
+	FOR(i, nbPoints)
 	{
-		printf("[HOME] ");
-		FOR(j, paths[i].n)
-			printf("%d ", paths[i].p[j]);
-		printf("[HOME]\n");
+		if(reached[i])
+			continue;
+		int prevWeight = currWeight;
+		int prevDist = currDist;
+		currWeight += weight[i];
+		if(nbReached == 0)
+		{
+#ifdef DEBUG
+			printf(" <dist add 1: +%d> ", distHome(pos + 2*i));
+#endif
+			currDist += distHome(pos + 2*i);
+		}
+		else if(currWeight > capacity)
+		{
+			currWeight = weight[i];
+#ifdef DEBUG
+			printf(" <dist add 2: +%d> ", distHome(pos + 2*path[idxPath-1]) + distHome(pos + i));
+#endif
+			currDist += distHome(pos + 2*path[idxPath-1]) + distHome(pos + 2*i);
+		}
+		else
+		{
+#ifdef DEBUG
+			printf(" <dist add 3: +%d (%d/%d)> ", dist(pos + 2*path[idxPath-1], pos + 2*i), path[idxPath-1],i);
+#endif
+			currDist += dist(pos + 2*path[idxPath-1], pos + 2*i);
+		}
+		if(minDist != -1 && currDist >= minDist)
+			continue;
+		path[idxPath++] = i;
+		reached[i] = 1;
+		nbReached++;
+#ifdef DEBUG
+		printf("tmpPath: ");
+		FOR(i, idxPath)
+			printf("%d ", path[i]);
+		printf("[%d]\n", currDist);
+#endif
+		nextPoint();
+		nbReached--;
+		idxPath--;
+		currDist = prevDist;
+		currWeight = prevWeight;
+		reached[i] = 0;
 	}
 }
 
@@ -164,19 +145,20 @@ int main(void)
 			printf("(%d,%d,%d) ", pos[j*2], pos[j*2+1], weight[j]);
 		printf("\b]\n\n");
 #endif
-		minPathsDist = -1;
-		paths = new path_t[nbPoints];
+		minDist = -1;
+		// on ne servira pas forcement de tout ces paths
+		path = new int[nbPoints];
+		minPath = new int[nbPoints];
 		reached = new int[nbPoints];
 		nbPath = 0;
 		FOR(i, nbPoints)
 			reached[i] = 0;
-		getMinPaths();
-		minPathsDist = 0;
-		FOR(j, nbPath)
-			minPathsDist += paths[j].d;
-		printf("%d\n\n", minPathsDist);
+		idxPath = 0;
+		nbReached = 0;
+		nextPoint();
+		printf("%d\n", minDist);
 #ifdef DEBUG
-		printPath();
+		printPath(minPath);
 #endif
 	}
     return 0;

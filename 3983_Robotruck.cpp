@@ -83,7 +83,7 @@ int main(void)
 		minDist = -1;
 		nextStep(0, distHome(pos), weight[0]);
 		delete[] pos;
-		printf("%d\n", minDist);
+		printf("%d\n\n", minDist);
 	}
     return 0;
 }

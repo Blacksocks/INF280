@@ -3,22 +3,14 @@
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
 
-//#define DEBUG			1
-#define HOME			(-1)
+#define DEBUG			1
 
-int * path;
-int * minPath;
-int minDist;
-int nbPath;
-int nbPoints;
-int capacity;
 int * weight;
+int * backHome;
+int minDist;
+int nbPoints;
 int * pos;
-int * reached;
-int nbReached;
-int currWeight;
-int currDist;
-int idxPath;
+int capacity;
 
 inline void check_input(const int input)
 {
@@ -39,90 +31,32 @@ inline int distHome(int * a)
 	return(a[0] + a[1]);
 }
 
-inline void printList(int * l, int n)
+void nextStep(int idx, int currDist, int w)
 {
-	printf("[");
-	FOR(i, n)
-		printf("%d ", l[i]);
-	printf("\b]\n");
-}
-
-void printPath(int * p)
-{
-	int w = 0;
-	printf("path: [HOME] ");
-	FOR(i, nbPoints)
+#ifdef DEBUG
+	FOR(i, nbPoints-1)
+		printf("%d ", backHome[i]);
+	printf("<> idx:%d, dist:%d, minDist:%d, w:%d\n", idx, currDist, minDist, w);
+#endif
+	if(w > capacity)
+		return;
+	if(idx >= nbPoints - 1)
 	{
-		w += weight[i];
-		if(w > capacity)
-		{
-			printf("[HOME] ");
-			w = weight[i];
-		}
-		printf("%d ", p[i]);
-	}
-	printf("[HOME]\n");
-}
-
-void nextPoint()
-{
-	if(nbReached == nbPoints)
-	{
-		currDist += distHome(pos + 2*path[idxPath-1]);
+		currDist += distHome(pos + 2*idx);
 		if(minDist != -1 && currDist >= minDist)
 			return;
 		minDist = currDist;
-		FOR(i, nbPoints)
-			minPath[i] = path[i];
+#ifdef DEBUG
+		printf(">minDist changed: %d\n", minDist);
+#endif
 		return;
 	}
-	FOR(i, nbPoints)
-	{
-		if(reached[i])
-			continue;
-		int prevWeight = currWeight;
-		int prevDist = currDist;
-		currWeight += weight[i];
-		if(nbReached == 0)
-		{
-#ifdef DEBUG
-			printf(" <dist add 1: +%d> ", distHome(pos + 2*i));
-#endif
-			currDist += distHome(pos + 2*i);
-		}
-		else if(currWeight > capacity)
-		{
-			currWeight = weight[i];
-#ifdef DEBUG
-			printf(" <dist add 2: +%d> ", distHome(pos + 2*path[idxPath-1]) + distHome(pos + i));
-#endif
-			currDist += distHome(pos + 2*path[idxPath-1]) + distHome(pos + 2*i);
-		}
-		else
-		{
-#ifdef DEBUG
-			printf(" <dist add 3: +%d (%d/%d)> ", dist(pos + 2*path[idxPath-1], pos + 2*i), path[idxPath-1],i);
-#endif
-			currDist += dist(pos + 2*path[idxPath-1], pos + 2*i);
-		}
-		if(minDist != -1 && currDist >= minDist)
-			continue;
-		path[idxPath++] = i;
-		reached[i] = 1;
-		nbReached++;
-#ifdef DEBUG
-		printf("tmpPath: ");
-		FOR(i, idxPath)
-			printf("%d ", path[i]);
-		printf("[%d]\n", currDist);
-#endif
-		nextPoint();
-		nbReached--;
-		idxPath--;
-		currDist = prevDist;
-		currWeight = prevWeight;
-		reached[i] = 0;
-	}
+	// on ne retourne pas a la maison
+	backHome[idx] = 0;
+	nextStep(idx + 1, currDist + dist(pos + 2*idx, pos + 2*(idx+1)), w + weight[idx+1]);
+	// on retourne a la maison
+	backHome[idx] = 1;
+	nextStep(idx + 1, currDist + distHome(pos + 2*idx) + distHome(pos + 2*(idx+1)), weight[idx+1]);
 }
 
 /* Solve Robotruck
@@ -137,6 +71,7 @@ int main(void)
 		check_input(scanf("%d%d", &capacity, &nbPoints));
 		pos = new int[nbPoints * 2];
 		weight = new int[nbPoints];
+		backHome = new int[nbPoints - 1];
 		FOR(j, nbPoints)
 			check_input(scanf("%d%d%d", &pos[j*2], &pos[j*2+1], &weight[j]));
 #ifdef DEBUG
@@ -146,20 +81,9 @@ int main(void)
 		printf("\b]\n\n");
 #endif
 		minDist = -1;
-		// on ne servira pas forcement de tout ces paths
-		path = new int[nbPoints];
-		minPath = new int[nbPoints];
-		reached = new int[nbPoints];
-		nbPath = 0;
-		FOR(i, nbPoints)
-			reached[i] = 0;
-		idxPath = 0;
-		nbReached = 0;
-		nextPoint();
+		nextStep(0, distHome(pos), weight[0]);
+		delete[] pos;
 		printf("%d\n", minDist);
-#ifdef DEBUG
-		printPath(minPath);
-#endif
 	}
     return 0;
 }

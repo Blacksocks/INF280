@@ -13,15 +13,6 @@ using namespace std;
 int * links;
 int nbPersons;
 
-inline void check_input(const int input)
-{
-	if(!input)
-	{
-		printf("[ERROR] Reading input error\n");
-		exit(1);
-	}
-}
-
 inline int get(int x, int y)
 {
 	return links[y * nbPersons + x];
@@ -52,16 +43,16 @@ int main(void)
 	while(1)
 	{
 		int nbLinks;
-		check_input(scanf("%d %d", &nbPersons, &nbLinks));
+		cin >> nbPersons >> nbLinks;
 		if(nbPersons == 0)
 			return 0;
 		links = new int[nbPersons * nbPersons];
-		char ** names = new char * [nbPersons];
+		string * names = new string [nbPersons];
 		int idx1 = 0;
 		int idx2 = 0;
 		int currentIdx = 0;
-		char name1[256];
-		char name2[256];
+		string name1;
+		string name2;
 		// init links matrix
 		FOR(i, nbPersons)
 			FOR(j, nbPersons)
@@ -69,20 +60,20 @@ int main(void)
 		// get links
 		FOR(i, nbLinks)
 		{
-			check_input(scanf("%s %s", name1, name2));
+			cin >> name1 >> name2;
 			// does the names list already contains the name
 			int count = 0;
 			idx1 = currentIdx;
 			idx2 = currentIdx;
 			FOR(j, currentIdx)
 			{
-				if(!strcmp(names[j], name1))
+				if(names[j] == name1)
 				{
 					idx1 = j;
 					if(count == 1) break;
 					else count++;
 				}
-				if(!strcmp(names[j], name2))
+				if(names[j] == name2)
 				{
 					idx2 = j;
 					if(count == 1) break;
@@ -94,13 +85,11 @@ int main(void)
 			{
 				if(idx2 == currentIdx++)
 					idx2 = currentIdx;
-				names[idx1] = new char[strlen(name1)];
-				strcpy(names[idx1], name1);
+				names[idx1] = name1;
 			}
 			if(idx2 >= currentIdx)
 			{
-				names[idx2] = new char[strlen(name2)];
-				strcpy(names[idx2], name2);
+				names[idx2] = name2;
 				currentIdx++;
 			}
 			// set link
@@ -131,9 +120,8 @@ int main(void)
 		}
 		if(!disconnected)
 			printf("Network %d: %d\n\n", networkNb, max);
+		networkNb++;
 		// clean
-		FOR(i, nbPersons)
-			delete[] names[i];
 		delete[] names;
 		delete[] links;
 	}

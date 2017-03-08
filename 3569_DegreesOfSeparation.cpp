@@ -24,7 +24,7 @@ inline void set(int x, int y, int value)
 }
 
 /* Floyed Warshall Algoruthm describe into:
-**	https://a3nm.net/work/teaching/2016-2017/inf280/3/graph.pdf
+** https://a3nm.net/work/teaching/2016-2017/inf280/3/graph.pdf
 */
 void FloydWarshall()
 {
@@ -56,7 +56,7 @@ int main(void)
 		// init links matrix
 		FOR(i, nbPersons)
 			FOR(j, nbPersons)
-				set(i, j, MAX);
+				set(i, j, (i == j) ? 0 : MAX);
 		// get links
 		FOR(i, nbLinks)
 		{
@@ -101,7 +101,7 @@ int main(void)
 		FOR(i, nbPersons)
 			FOR(j, nbPersons)
 				if(get(i, j) < MAX)
-					printf("(%d,%d) (%s,%s)\n", i, j, names[i], names[j]);
+					cout << "[" << i << "," << j << "] " << names[i] << "," << names[j] << " - " << get(i, j) << endl;
 		printf("\n");
 #endif
 		FloydWarshall();

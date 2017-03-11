@@ -1,7 +1,7 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-NUMBER = 3569
-SRC = $(NUMBER)_DegreesOfSeparation.cpp
+NUMBER = 2939
+SRC = $(NUMBER)_MenAtWork.cpp
 EXE = $(subst .cpp,,$(SRC))
 INPUT = file_$(NUMBER)
 

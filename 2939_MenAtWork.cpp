@@ -76,18 +76,6 @@ void printArray(int * array)
 
 int dijkstra()
 {
-	if(n < 5)
-		return 0;
-	/*int y = 5;
-	FOR(x, n)
-	{
-		printf("x: %d, duration: %d\n", x, duration[idx(x, y)]);
-		FOR(i, 100)
-			printf("%d ", isReachable(i, x, y));
-		printf("\n");
-	}
-	return 0;*/
-	//printf("DIJKSTRA BEGIN\n");
 	int * visited = new int[n *n];
 	int nbVisited = 0;
 	int * next = new int[n *n];
@@ -107,16 +95,9 @@ int dijkstra()
 			printf("MAX TIME EXCEDDED\n");
 			return 0;
 		}
-		printArray(dist);
-		/*printf("Next");
-		FOR(i, nbNext)
-			printf("[%d,%d] ", getX(next[i]), getY(next[i]));
-		printf("\n");*/
-		//printf("\nTurn ====\n");
 		// get min dist from next
 		int minDistIdx = next[0];
 		int nextIdx = 0;
-		//printf("nbNext: %d, nbVisited: %d\n", nbNext, nbVisited);
 		FOR3(1, i, nbNext)
 			if(dist[next[i]] < dist[minDistIdx])
 			{
@@ -125,7 +106,6 @@ int dijkstra()
 			}
 		if(minDistIdx == idx(n - 1, n - 1))
 			return 0;
-		//printf("MinDist: %d, [%d,%d]\n", dist[minDistIdx], getX(minDistIdx), getY(minDistIdx));
 		// in each direction
 		int tmpX = getX(minDistIdx);
 		int tmpY = getY(minDistIdx);
@@ -155,32 +135,24 @@ int dijkstra()
 			// if node position out of range, pass
 			if(tmpX < 0 || tmpY < 0 || tmpX == n || tmpY == n)
 				continue;
-			//printf("try: [%d,%d]\n", tmpX, tmpY);
 			// if the node is not reachable, pass
 			if(!isReachable(d, tmpX, tmpY))
 				continue;
-			// if the node is already visited, pass
-			//if(find(visited, nbVisited, idx(tmpX, tmpY)))
-			//	continue;
-			//printf("test passed ,");
 			// if new path is shorter than the previous...
 			if(get(dist, tmpX, tmpY) > d)
 			{
-				//printf("udate dist: [%d,%d]", tmpX, tmpY);
 				// ...set new dist
 				set(dist, tmpX, tmpY, d);
 				// add new node to next list
 				if(!find(next, nbNext, idx(tmpX, tmpY)))
 					next[nbNext++] = idx(tmpX, tmpY);
 			}
-			//printf("\n");
 		}
 		// add visited node
 		visited[nbVisited++] = minDistIdx;
 	}
 	delete[] visited;
 	delete[] next;
-	//printf("DIJKSTRA END\n");
 	return 0;
 }
 

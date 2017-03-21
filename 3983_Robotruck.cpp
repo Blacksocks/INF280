@@ -1,15 +1,22 @@
 #include <iostream>
+#include <list>
 
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
 
-#define DEBUG			1
+//#define DEBUG			1
+
+typedef struct pos_s {
+	int x;
+	int y;
+} pos_t;
+
+using namespace std;
 
 int * weight;
 int * backHome;
-int minDist;
 int nbPoints;
-int * pos;
+pos_t * pos;
 int capacity;
 
 inline void check_input(const int input)
@@ -21,42 +28,70 @@ inline void check_input(const int input)
 	}
 }
 
-inline int dist(int * a, int * b)
+inline int dist(pos_t * a, pos_t * b)
 {
-	return(abs(b[0] - a[0]) + abs(b[1] - a[1]));
+	return(abs(b->x - a->x) + abs(b->y - a->y));
 }
 
-inline int distHome(int * a)
+inline int distHome(pos_t * a)
 {
-	return(a[0] + a[1]);
+	return(a->x + a->y);
 }
 
-void nextStep(int idx, int currDist, int w)
+int initIdx()
+{
+	int i = 0;
+	int w = 0;
+	for(i = 0; (w += weight[i]) <= capacity && i < nbPoints; i++);
+	return(i - 1);
+}
+
+int initIdxBack(int i)
+{
+	i--;
+	for(; backHome[i] == 0 && i > 0; i--);
+	return(i);
+}
+
+int optimize(int idx, int maxIdx, int currDist, int w)
 {
 #ifdef DEBUG
 	FOR(i, nbPoints-1)
 		printf("%d ", backHome[i]);
-	printf("<> idx:%d, dist:%d, minDist:%d, w:%d\n", idx, currDist, minDist, w);
+	printf("<> idx:%d, dist:%d, maxIdx:%d, w:%d\n", idx, currDist, maxIdx, w);
 #endif
 	if(w > capacity)
-		return;
-	if(idx >= nbPoints - 1)
-	{
-		currDist += distHome(pos + 2*idx);
-		if(minDist != -1 && currDist >= minDist)
-			return;
-		minDist = currDist;
-#ifdef DEBUG
-		printf(">minDist changed: %d\n", minDist);
-#endif
-		return;
-	}
+		return -1;
+	if(idx == maxIdx)
+		return currDist;
 	// on ne retourne pas a la maison
 	backHome[idx] = 0;
-	nextStep(idx + 1, currDist + dist(pos + 2*idx, pos + 2*(idx+1)), w + weight[idx+1]);
+	int notGoBackHomeDist = optimize(idx + 1, maxIdx, currDist + dist(&pos[idx], &pos[idx+1]), w + weight[idx+1]);
 	// on retourne a la maison
 	backHome[idx] = 1;
-	nextStep(idx + 1, currDist + distHome(pos + 2*idx) + distHome(pos + 2*(idx+1)), weight[idx+1]);
+	int goBackHomeDist = optimize(idx + 1, maxIdx, currDist + distHome(&pos[idx]) + distHome(&pos[idx+1]), weight[idx+1]);
+#ifdef DEBUG
+	printf("idx: %d, notGoBackHomeDist / goBackHomeDist : %d / %d\n", idx, notGoBackHomeDist, goBackHomeDist);
+#endif
+	if(notGoBackHomeDist == -1)
+		return goBackHomeDist;
+	if(goBackHomeDist == -1)
+	{
+		backHome[idx] = 1;
+		return goBackHomeDist;
+	}
+	if(notGoBackHomeDist < goBackHomeDist)
+	{
+#ifdef DEBUG
+		printf("backHome[%d] = %d\n", idx, 0);
+#endif
+		backHome[idx] = 0;
+		return notGoBackHomeDist;
+	}
+#ifdef DEBUG
+	printf("backHome[%d] = %d\n", idx, 1);
+#endif
+	return goBackHomeDist;
 }
 
 /* Solve Robotruck
@@ -69,21 +104,41 @@ int main(void)
 	FOR(i, nbTests)
 	{
 		check_input(scanf("%d%d", &capacity, &nbPoints));
-		pos = new int[nbPoints * 2];
+		pos = new pos_t[nbPoints];
 		weight = new int[nbPoints];
 		backHome = new int[nbPoints - 1];
 		FOR(j, nbPoints)
-			check_input(scanf("%d%d%d", &pos[j*2], &pos[j*2+1], &weight[j]));
+			check_input(scanf("%d%d%d", &pos[j].x, &pos[j].y, &weight[j]));
 #ifdef DEBUG
 		printf("capacity: %d\nnbPoints: %d\nlist: [", capacity, nbPoints);
 		FOR(j, nbPoints)
-			printf("(%d,%d,%d) ", pos[j*2], pos[j*2+1], weight[j]);
+			printf("(%d,%d,%d) ", pos[j].x, pos[j].y, weight[j]);
 		printf("\b]\n\n");
 #endif
-		minDist = -1;
-		nextStep(0, distHome(pos), weight[0]);
-		delete[] pos;
+
+		int idx = initIdx();
+		optimize(0, idx, 0, 0);
+		FOR3(idx+1, j, nbPoints)
+		{
+#ifdef DEBUG
+			printf("======================\n\n");
+#endif
+			optimize(initIdxBack(j), j, 0, 0);
+		}
+
+		int minDist = distHome(&pos[0]) + distHome(&pos[nbPoints-1]);
+#ifdef DEBUG
+		printf("backHome: ");
+		FOR(j, nbPoints-1)
+			printf("%d ", backHome[j]);
+		printf("\n");
+#endif
+		FOR(j, nbPoints-1)
+			minDist += backHome[j] ? distHome(&pos[j]) + distHome(&pos[j+1]) : dist(&pos[j], &pos[j+1]);
 		printf("%d\n\n", minDist);
+		delete[] pos;
+		delete[] weight;
+		delete[] backHome;
 	}
     return 0;
 }

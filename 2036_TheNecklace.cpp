@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <list>
+#include <map>
 
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
@@ -13,73 +14,23 @@ typedef struct edge_s
 {
     int node1; // start node
     int node2; // node pointed
-    int visited; // is this edge visited?
+    int visited; // edge already visited?
 } edge_t;
 
-typedef struct node_s
-{
-    int * linked; // linked nodes index
-    int nbEdges; // number of linked edges
-    int value;
-} node_t;
-
-edge_t ** edges;
-node_t ** nodes;
-int n; // number of colors
 int m; // number of beads
+map<int, list<int>> nmap;
+edge_t ** edges;
 
-void getNodes()
+void getNodesMap()
 {
-    n = 0;
-    // set n, nodes[n]->nbEdges and nodes[n]->value
+    map<int, list<int>>::iterator it;
     FOR(i, m)
     {
-        // node1
-        int newNode = 1;
-        FOR(j, n)
-            if(edges[i]->node1 == nodes[j]->value)
-            {
-                newNode = 0;
-                break;
-            }
-        if(newNode)
-        {
-            nodes[n] = new node_t;
-            nodes[n]->nbEdges = 1;
-            nodes[n++]->value = edges[i]->node1;
-        }
-        // node2
-        newNode = 1;
-        FOR(j, n)
-            if(edges[i]->node2 == nodes[j]->value)
-            {
-                newNode = 0;
-                break;
-            }
-        if(newNode)
-        {
-            nodes[n] = new node_t;
-            nodes[n]->nbEdges = 1;
-            nodes[n++]->value = edges[i]->node2;
-        }
+        if(edges[i]->node1 == edges[i]->node2)
+            continue;
+        nmap[edges[i]->node1].push_back(edges[i]->node2);
+        nmap[edges[i]->node2].push_back(edges[i]->node1);
     }
-    // set nodes[i]->linked
-    FOR(i, n)
-        nodes[i]->linked = new int[nodes[i]->nbEdges];
-    FOR(i, n)
-        nodes[i]->nbEdges = 0;
-    FOR(i, m)
-        FOR(j, n)
-            //if(edges[i]->node1 == edges[i]->node2 && nodes[j]->value == edges[i]->node1)
-            //    nodes[j]->linked[nodes[j]->nbEdges++] = edges[i]->node2;
-            //else
-            if(edges[i]->node1 != edges[i]->node2)
-            {
-                if(nodes[j]->value == edges[i]->node1)
-                    nodes[j]->linked[nodes[j]->nbEdges++] = edges[i]->node2;
-                if(nodes[j]->value == edges[i]->node2)
-                    nodes[j]->linked[nodes[j]->nbEdges++] = edges[i]->node1;
-            }
 }
 
 /* return number of odds
@@ -87,16 +38,16 @@ void getNodes()
 int getOdd(int * odd)
 {
     int nbOdds = 0;
-    FOR(i, n)
+    for(map<int, list<int>>::iterator it = nmap.begin(); it != nmap.end(); ++it)
     {
-        if(nodes[i]->nbEdges < 2)
+        if(it->second.size() < 2)
             return -1;
-        if(nodes[i]->nbEdges % 2 == 1)
+        if(it->second.size() % 2 == 1)
         {
             if(nbOdds > 2)
                 return 3;
             else if(nbOdds++ == 0)
-                *odd = i;
+                *odd = it->first;
         }
     }
     return nbOdds;
@@ -118,6 +69,7 @@ int main(void)
     cin >> nbTests;
     FOR(t, nbTests)
     {
+        nmap.clear();
         // input
         cin >> m;
         edges = new edge_t*[m];
@@ -129,18 +81,18 @@ int main(void)
             cin >> edges[i]->node2;
             edges[i]->visited = 0;
         }
-        nodes = new node_t*[m * 2];
-        getNodes();
+        getNodesMap();
 #ifdef DEBUG
-        cout << "nbRings: " << n << endl;
+        cout << "nbRings: " << m << endl;
         FOR(i, m)
-            cout << "edge" << i << ": [" << edges[i]->node1 << "," << edges[i]->node2 << "]" << endl;
-        FOR(i, n)
+            cout << "[" << edges[i]->node1 << "," << edges[i]->node2 << "]" << endl;
+        for(map<int, list<int>>::iterator it=nmap.begin(); it != nmap.end(); ++it)
         {
-            cout << "node " << i << ": value: " << nodes[i]->value << ", [";
-            FOR(j, nodes[i]->nbEdges)
-                cout << nodes[i]->linked[j] << ",";
-            cout << "]" << endl;
+            cout << it->first << " => [";
+            list<int>::const_iterator it2;
+            for (it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                std::cout << *it2 << ",";
+            cout << "]\n";
         }
 #endif
         // algorithm
@@ -157,13 +109,8 @@ int main(void)
         }
         cout << endl;
         // free
-        FOR(i, n)
-            delete[] nodes[i]->linked;
-        FOR(i, n)
-            delete nodes[i];
         FOR(i, m)
             delete edges[i];
-        delete[] nodes;
         delete[] edges;
     }
     return 0;

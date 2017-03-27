@@ -46,7 +46,7 @@ void removeShortestPath()
         node_t * nd = nodes[i];
         FOR(j, nd->nbEdges)
             if(edges[nd->edges[j]]->node1 == -1)
-                nd->edges[j] = nd->edges[--nd->nbEdges];
+                nd->edges[j--] = nd->edges[--nd->nbEdges];
     }
 }
 

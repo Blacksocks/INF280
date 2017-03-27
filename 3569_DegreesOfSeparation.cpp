@@ -5,7 +5,7 @@
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
 
-//#define DEBUG			1
+#define DEBUG			1
 #define MAX				INT_MAX / 2
 
 using namespace std;
@@ -101,10 +101,16 @@ int main(void)
 		FOR(i, nbPersons)
 			FOR(j, nbPersons)
 				if(get(i, j) < MAX)
-					cout << "[" << i << "," << j << "] " << names[i] << "," << names[j] << " - " << get(i, j) << endl;
+					cout << i << "," << j << " " << names[i] << "->" << names[j] << endl;
 		printf("\n");
 #endif
 		FloydWarshall();
+#ifdef DEBUG
+		printf("Links:\n");
+		FOR(i, nbPersons)
+			FOR(j, nbPersons)
+
+#endif
 		int max = 0;
 		int disconnected = 0;
 		FOR(i, nbPersons * nbPersons)

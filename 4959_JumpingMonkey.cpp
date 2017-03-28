@@ -20,7 +20,6 @@ typedef struct node_s
 {
     int * edges; // linked edges index
     int nbEdges; // number of linked edges
-    int value;
 } node_t;
 
 int n; // number of nodes
@@ -31,49 +30,6 @@ list<int> treeConfig;
 list<int> bestConfig;
 list<uint32_t> monkeyPrevPos;
 int nb_fire;
-
-/* value must be equal to node->value */
-void networkChangeValue(node_t * node, int newValue, int value)
-{
-    if(node->value == -1 || node->value != value)
-        return;
-    node->value = newValue;
-    FOR(i, node->nbEdges)
-        networkChangeValue(nodes[node->edges[i]], newValue, value);
-}
-
-int loopExists()
-{
-    int networkValue = 0;
-    // init graph
-    FOR(i, n)
-        nodes[i]->value = -1;
-    FOR(i, m)
-    {
-        int tmp1 = nodes[edges[i]->node1]->value;
-        int tmp2 = nodes[edges[i]->node2]->value;
-        if(tmp1 != -1 && tmp1 == tmp2)
-            return 1;
-        if(tmp1 == -1 && tmp2 == -1)
-        {
-            nodes[edges[i]->node1]->value = networkValue;
-            nodes[edges[i]->node2]->value = networkValue++;
-            continue;
-        }
-        if(tmp1 == -1)
-        {
-            nodes[edges[i]->node1]->value = nodes[edges[i]->node2]->value;
-            continue;
-        }
-        if(tmp2 == -1)
-        {
-            nodes[edges[i]->node2]->value = nodes[edges[i]->node1]->value;
-            continue;
-        }
-        networkChangeValue(nodes[edges[i]->node1], nodes[edges[i]->node2]->value, nodes[edges[i]->node1]->value);
-    }
-    return 0;
-}
 
 void update_values(uint32_t * monkeyNextPos, uint32_t monkeyCurrPos)
 {
@@ -179,24 +135,16 @@ int main(void)
             cout << "edge " << i << ": [" << edges[i]->node1 << "," << edges[i]->node2 << "] size: " << endl;
         FOR(i, n)
         {
-            cout << "node " << i << ": value: " << nodes[i]->value << ", [";
+            cout << "node " << i << ": [";
             FOR(j, nodes[i]->nbEdges)
                 cout << nodes[i]->edges[j] << ",";
             cout << "]" << endl;
         }
 #endif
-        // algorithm
-        /*if(loopExists())
-        {
-            cout << "Impossible" << endl;
-            continue;
-        }*/
         // Brute force
         nb_fire = INT_MAX;
         monkeyPrevPos.clear();
         bestConfig.clear();
-        FOR(i, n)
-            nodes[i]->value = 1;
         FOR(i, n)
             fire(i,((int)1 << n) - 1);
         if((int)bestConfig.size() == 0)

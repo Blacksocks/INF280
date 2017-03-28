@@ -29,7 +29,7 @@ edge_t ** edges; // graph edges
 node_t ** nodes; // graph nodes
 list<int> treeConfig;
 list<int> bestConfig;
-list<long> monkeyPrevPos;
+list<uint32_t> monkeyPrevPos;
 int nb_fire;
 
 /* value must be equal to node->value */
@@ -75,47 +75,32 @@ int loopExists()
     return 0;
 }
 
-void update_values(long * monkeyNextPos, long monkeyCurrPos)
+void update_values(uint32_t * monkeyNextPos, uint32_t monkeyCurrPos)
 {
+    uint32_t tmp = 1;
     FOR(i, n)
-        if((monkeyCurrPos & ((long)1 << i)) != 0)
+    {
+        if(monkeyCurrPos & tmp)
             FOR(j, nodes[i]->nbEdges)
-                *monkeyNextPos |= (long)1 << nodes[i]->edges[j];
+                *monkeyNextPos |= (uint32_t)1 << nodes[i]->edges[j];
+        tmp  = tmp << 1;
+    }
 }
 
-void fire(int treeIdx, long monkeyPos)
+void fire(int treeIdx, uint32_t monkeyPos)
 {
-#ifdef DEBUG
-    cout << "=== treeIdx:" << treeIdx << " ===" << endl;
-    cout << "monkeyPos:          ";
-    FOR(i, n)
-        cout << (((monkeyPos & ((long)1 << i)) != 0) ? '1' : '0') << " ";
-    cout << endl;
-#endif
     // attention, ne prend pas en compte l'ordre lexicographique
     if((int)treeConfig.size() >= nb_fire)
         return;
-    long monkeySavePos = monkeyPos & ~((long)1 << treeIdx);
+    uint32_t monkeySavePos = monkeyPos & ~((uint32_t)1 << treeIdx);
     monkeyPos = 0;
     treeConfig.push_back(treeIdx);
-#ifdef DEBUG
-    cout << "treeConfig: ";
-    for(std::list<int>::iterator it = treeConfig.begin(); it != treeConfig.end(); it++)
-        cout << *it << " ";
-    cout << endl;
-#endif
     update_values(&monkeyPos, monkeySavePos);
     int stop = 0;
-    for(std::list<long>::iterator it = monkeyPrevPos.begin(); it != monkeyPrevPos.end(); it++)
+    for(std::list<uint32_t>::iterator it = monkeyPrevPos.begin(); it != monkeyPrevPos.end(); it++)
         if(monkeyPos == *it)
             stop = 1;
     monkeyPrevPos.push_back(monkeyPos);
-    #ifdef DEBUG
-        cout << "monkeyPREVposADDED: ";
-        FOR(i, n)
-            cout << (((monkeyPos & ((long)1 << i)) != 0) ? '1' : '0') << " ";
-        cout << endl;
-    #endif
     // this solution doesn't end
     if(stop);
     // aucune position n'est possible pour le monkey
@@ -125,9 +110,6 @@ void fire(int treeIdx, long monkeyPos)
         if((int)treeConfig.size() < nb_fire)
         {
             nb_fire = (int)treeConfig.size();
-#ifdef DEBUG
-            cout << "new nb_fire: " << nb_fire << endl;
-#endif
             // copy treeConfig in bestConfig
             bestConfig.clear();
             for(std::list<int>::iterator it = treeConfig.begin(); it != treeConfig.end(); it++)
@@ -135,11 +117,16 @@ void fire(int treeIdx, long monkeyPos)
         }
     }
     // toutes les positions sont envisageables pour la position du monkey
-    else if(((long)1 << n) - 1 != monkeyPos)
+    else if(__builtin_popcount(monkeyPos) != n)
     {
         int nbMonkeySavePrevPos = monkeyPrevPos.size();
+        uint32_t tmp = 1;
         FOR(i, n)
-            fire(i, monkeyPos);
+        {
+            if(monkeyPos & tmp)
+                fire(i, monkeyPos);
+            tmp = tmp << 1;
+        }
         while((int)monkeyPrevPos.size() > nbMonkeySavePrevPos)
             monkeyPrevPos.pop_back();
     }
@@ -155,9 +142,6 @@ int main(void)
 {
     while(1)
     {
-#ifdef DEBUG
-        cout << endl << "======================" << endl;
-#endif
         // input
         cin >> n >> m;
         if(n == 0)
@@ -202,11 +186,11 @@ int main(void)
         }
 #endif
         // algorithm
-        if(loopExists())
+        /*if(loopExists())
         {
             cout << "Impossible" << endl;
             continue;
-        }
+        }*/
         // Brute force
         nb_fire = INT_MAX;
         monkeyPrevPos.clear();
@@ -214,7 +198,7 @@ int main(void)
         FOR(i, n)
             nodes[i]->value = 1;
         FOR(i, n)
-            fire(i,((long)1 << n) - 1);
+            fire(i,((int)1 << n) - 1);
         if((int)bestConfig.size() == 0)
         {
             cout << "Impossible" << endl;

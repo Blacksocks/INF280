@@ -55,7 +55,10 @@ void fire(int treeIdx, uint32_t monkeyPos)
     int stop = 0;
     for(std::list<uint32_t>::iterator it = monkeyPrevPos.begin(); it != monkeyPrevPos.end(); it++)
         if(monkeyPos == *it)
+        {
             stop = 1;
+            break;
+        }
     monkeyPrevPos.push_back(monkeyPos);
     // this solution doesn't end
     if(stop);

@@ -209,10 +209,17 @@ int main(void)
         }
         // Brute force
         nb_fire = INT_MAX;
+        monkeyPrevPos.clear();
+        bestConfig.clear();
         FOR(i, n)
             nodes[i]->value = 1;
         FOR(i, n)
             fire(i,((long)1 << n) - 1);
+        if((int)bestConfig.size() == 0)
+        {
+            cout << "Impossible" << endl;
+            continue;
+        }
         cout << bestConfig.size() << ":";
         for(std::list<int>::iterator it = bestConfig.begin(); it != bestConfig.end(); it++)
             cout << " " << *it;

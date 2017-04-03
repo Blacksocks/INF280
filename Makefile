@@ -1,7 +1,7 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-NUMBER = 6823
-SRC = $(NUMBER)_CountingSubstreengs.cpp
+NUMBER = 6893
+SRC = $(NUMBER)_TheBigPainting.cpp
 EXE = $(subst .cpp,,$(SRC))
 INPUT = file_$(NUMBER)
 

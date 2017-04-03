@@ -1,7 +1,7 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-NUMBER = 4959
-SRC = $(NUMBER)_JumpingMonkey.cpp
+NUMBER = 6823
+SRC = $(NUMBER)_CountingSubstreengs.cpp
 EXE = $(subst .cpp,,$(SRC))
 INPUT = file_$(NUMBER)
 

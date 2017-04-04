@@ -6,9 +6,9 @@
 #define FOR(i,n)        for(int i = 0; i < n; i++)
 #define FOR3(m,i,n)     for(int i = m; i < n; i++)
 
-#define DEBUG			1
+//#define DEBUG			1
 
-#define EPSILON         0.01
+#define EPSILON         0.000005
 
 typedef struct point_s {
     double x;
@@ -52,15 +52,14 @@ inline double getAngle(point_t p1, point_t p2, point_t p3)
         a21 += 2 * M_PI;
     while(a31 < 0)
         a31 += 2 * M_PI;
-    printf("[%lf, %lf]\n", a21*180/M_PI, a31*180/M_PI);
     return(a21 - a31);
 }
 
 int isDividing(double a, double angle)
 {
     double division = a / angle;
-    if(division - (int)division < EPSILON)
-        return (int)division;
+    if(absolute(division - round(division)) < EPSILON)
+        return round(division);
     return 0;
 }
 
@@ -83,51 +82,35 @@ int main(void)
         // get angles and set the minimum in a1
         double a1, a2, a3;
         a1 = getAngle(c, p1, p2);
-        /*if(a1 > M_PI)
-            a1 = 2 * M_PI - a1;*/
         a2 = getAngle(c, p2, p3);
-        /*if(a2 > M_PI)
-            a2 = 2 * M_PI - a2;*/
         a3 = getAngle(c, p3, p1);
-        int nb_neg = (a1 < 0) + (a2 < 0) + (a3 < 0);
-        if((a1 < 0) + (a2 < 0) + (a3 < 0) == 1)
+        if(a1 * a2 * a3 > 0)
         {
-            if(a1 < 0)
-                a1 = 2 * M_PI + a1;
-            if(a2 < 0)
-                a2 = 2 * M_PI + a2;
-            if(a3 < 0)
-                a3 = 2 * M_PI + a3;
+            a1 = -a1;
+            a2 = -a2;
+            a3 = -a3;
         }
-        else
-        {
-            if(a1 > 0)
-            {
-                a1 = 2 * M_PI - a1;
-                // ax = abs(ax)
-            }
-            // faire la mm pour a2 et a3
-            if(a2 > 0)
-                a2 = 2 * M_PI - a2;
-            if(a3 > 0)
-                a3 = 2 * M_PI - a3;
-        }
+        if(a1 < 0)
+            a1 = 2 * M_PI + a1;
+        if(a2 < 0)
+            a2 = 2 * M_PI + a2;
+        if(a3 < 0)
+            a3 = 2 * M_PI + a3;
+#ifdef DEBUG
         printf("==============================\n");
+        printf("(%lf,%lf)\n", p1.x, p1.y);
+        printf("(%lf,%lf)\n", p2.x, p2.y);
+        printf("(%lf,%lf)\n", p3.x, p3.y);
         printf("center: [%lf, %lf]\n", c.x, c.y);
         printf("sum angles: %lf\n", (a1+a2+a3)*180/M_PI);
         printf("a1:%lf, a2:%lf, a3:%lf\n", a1*180/M_PI, a2*180/M_PI, a3*180/M_PI);
-        continue;
+#endif
         int i = 0;
         while(i <= 1000)
         {
             double angle = a1 / i;
             int nb2 = isDividing(a2, angle);
             int nb3 = isDividing(a3, angle);
-            if(nb2 + nb3 + i == 491)
-            {
-                printf("div2:%lf, div3:%lf\n", a2 / angle, a3 / angle);
-                printf("i:%d, angle:%lf, nb2:%d, nb3:%d\n", i, angle, nb2, nb3);
-            }
             if(nb2 && nb3)
             {
                 cout << (nb2 + nb3 + i) << endl;
@@ -137,7 +120,7 @@ int main(void)
         }
         if(i == 1001)
         {
-            cout << "ERROR Too small EPSILON" << endl;
+            cout << "[ERROR] Too small EPSILON" << endl;
             return 1;
         }
     }

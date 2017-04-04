@@ -17,12 +17,6 @@ typedef struct point_s {
 
 using namespace std;
 
-void copy(point_t * p1, point_t p2)
-{
-    p1->x = p2.x;
-    p1->y = p2.y;
-}
-
 double absolute(double x)
 {
     return (x >= 0) ? x : -x;

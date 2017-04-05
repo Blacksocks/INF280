@@ -9,14 +9,14 @@
 
 //#define DEBUG			1
 
-#define MIN             (-FLT_MAX/2)
-#define MAX             (FLT_MAX/2)
+#define MIN             (-DBL_MAX/2)
+#define MAX             (DBL_MAX/2)
 
 using namespace std;
 
 struct point {
     int x, y;
-    float slope;
+    double slope;
     point(): x(0), y(0) {slope = 0;}
     point(int in_x, int in_y): x(in_x), y(in_y) {slope = 0;}
     bool operator == (point pt) const {return (x == pt.x && y == pt.y);}
@@ -28,9 +28,16 @@ struct by_slope {
     }
 };
 
-float absolute(float x)
+double absolute(double x)
 {
     return(x >= 0 ? x : -x);
+}
+
+int dist_sq(point p1, point p2)
+{
+    int dx = p2.x - p1.x;
+    int dy = p2.y - p1.y;
+    return (dx * dx + dy * dy);
 }
 
 int vect(point p1, point p2, point p3)
@@ -44,13 +51,13 @@ int vect(point p1, point p2, point p3)
 
 /* p1 and p2 form a line and this function return the distance between the line and p3
 */
-float getDist(point p1, point p2, point p3)
+double getDist(point p1, point p2, point p3)
 {
 #ifdef DEBUG
     printf("[%d,%d] [%d,%d] [%d,%d]\n", p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
 #endif
     // ax + by + c = 0
-    float a, b, c;
+    double a, b, c;
     if(p2.x != p1.x)
     {
         a = (p2.y - p1.y) * 1.0 / (p2.x - p1.x);
@@ -63,7 +70,7 @@ float getDist(point p1, point p2, point p3)
         b = 0;
         c = p1.x;
     }
-    float res = absolute(a * p3.x + b * p3.y + c) / sqrt(a * a + b * b);
+    double res = absolute(a * p3.x + b * p3.y + c) / sqrt(a * a + b * b);
     return res;
 }
 
@@ -103,11 +110,16 @@ list<point> getConvex(list<point> points)
             result.pop_back();
         if(vect(*(prev(prev(result.end()))), result.back(), *it) == 0)
         {
-            result.pop_back();
-            while(vect(*(prev(prev(result.end()))), result.back(), *it) < 0)
+            if(dist_sq(*(prev(prev(result.end()))), result.back()) < dist_sq(*(prev(prev(result.end()))), *it))
+            {
                 result.pop_back();
+                while(result.size() > 1 && vect(*(prev(prev(result.end()))), result.back(), *it) < 0)
+                    result.pop_back();
+                result.push_back(*it);
+            }
         }
-        result.push_back(*it);
+        else
+            result.push_back(*it);
     }
     return result;
 }
@@ -144,18 +156,18 @@ int main(void)
         for(list<point>::iterator it = points.begin(); it != points.end(); it++)
             printf("[%d,%d]\n", (*it).x, (*it).y);
 #endif
-        float global_min_size = DBL_MAX;
+        double global_min_size = DBL_MAX;
         for(list<point>::iterator it = points.begin(); it != points.end(); it++)
         {
             /*if(it == points.begin())
                 continue;*/
-            float max_size = 0;
+            double max_size = 0;
             for(list<point>::iterator it2 = next(it); it2 != it; it2++)
             {
                 if(it2 == points.end())
                     it2 = points.begin();
                 point it_1 = (it == points.begin() ? points.back() : *prev(it));
-                float tmp_max_size = getDist(it_1, *it, *it2);
+                double tmp_max_size = getDist(it_1, *it, *it2);
 #ifdef DEBUG
                 printf("tmp_max_size: %lf / max_size: %lf\n", tmp_max_size, max_size);
 #endif

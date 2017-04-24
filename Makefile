@@ -1,7 +1,7 @@
 CC = g++
 CXXFLAGS = -O2 -std=c++11 -Werror -Wall -Wextra -pedantic
-NUMBER = 5138
-SRC = $(NUMBER)_TrashRemoval.cpp
+NUMBER = 6527
+SRC = $(NUMBER)_CountingOnes.cpp
 EXE = $(subst .cpp,,$(SRC))
 INPUT = file_$(NUMBER)
 
